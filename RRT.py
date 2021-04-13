@@ -142,6 +142,13 @@ def action(Xi, Yi, theta_i, UL, UR):
         D = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
                     + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
 
+        node = Node(Xn, Yn, D, 0, theta_n, theta_i)
+
+        if move_check(node):  # Check if child is within the map or in an obstacle.
+            pass
+        else:  # If out of bounds or an obstacle, restart loop and choose new node.
+            continue
+
         plt.plot([Xs, Xn], [Ys, Yn], color="blue")
 
     theta_n = np.rad2deg(theta_n)
@@ -162,7 +169,7 @@ def motion_model(prev_orientation, RPM_left, RPM_right, x, y):
                     [RPM_right, RPM_right],
                     [RPM_left, RPM_right],
                     [RPM_right, RPM_left]]
-    # # TODO: the curve plotting sequence will enter the obstacle area
+
     model = []
     for w in wheel_speed:
         model.append(action(x, y, theta, w[0], w[1]))
