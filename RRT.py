@@ -86,8 +86,8 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         prev_orientation = start_theta
 
         # TODO: Remember to make RPM_left and RPM_right to user input after testing
-        RPM_left = 50  # For testing program
-        RPM_right = 50  # For testing program
+        RPM_left = 10  # For testing program
+        RPM_right = 20  # For testing program
 
         # Initialize start and goal nodes from node class
         start_node = Node(start_x, start_y, 0, -1, prev_orientation, prev_orientation)
@@ -126,23 +126,23 @@ def action(Xi, Yi, theta_i, UL, UR):
     # L: distance between two wheels
     t = 0
     r = 5
-    L = 40
-    dt = 1
+    L = 50
+    dt = 0.1
     Xn = Xi
     Yn = Yi
     theta_n = np.deg2rad(theta_i)
     D = 0
+    while t < 1:
+        t = t + dt
+        Xs = Xn
+        Ys = Yn
+        Xn += 0.5 * r * (UL + UR) * np.cos(theta_n) * dt
+        Yn += 0.5 * r * (UL + UR) * np.sin(theta_n) * dt
+        theta_n += (r / L) * (UR - UL) * dt
+        D = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
+                    + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
 
-    Xs = Xn
-    Ys = Yn
-    Xn = Xi + 0.5 * r * (UL + UR) * np.cos(theta_n) * dt
-    Yn = Yi + 0.5 * r * (UL + UR) * np.sin(theta_n) * dt
-    theta_n = theta_i + (r / L) * (UR - UL) * dt
-    D = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
-                + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
-
-    # plot the action curve
-    plt.plot([Xs, Xn], [Ys, Yn], color="blue")
+        plt.plot([Xs, Xn], [Ys, Yn], color="blue")
 
     theta_n = np.rad2deg(theta_n)
 
@@ -150,20 +150,22 @@ def action(Xi, Yi, theta_i, UL, UR):
 
 
 def motion_model(prev_orientation, RPM_left, RPM_right, x, y):
-    # TODO: determine theta angle 30? 45? (theta angle will affect the orientation_dict and V matrix)
+    # TODO: determine theta angle 30? 45?
     # theta = theta + Previous orientation
-    theta = np.deg2rad(30) + np.deg2rad(prev_orientation)
+    theta = np.deg2rad(prev_orientation)
     # Get the new x and y coordinates, new theta, and cost through action()
-    model = [action(x, y, theta, 0, RPM_left),
-             action(x, y, theta, RPM_left, 0),
-             action(x, y, theta, RPM_left, RPM_left),
-             action(x, y, theta, 0, RPM_right),
-             action(x, y, theta, RPM_right, 0),
-             action(x, y, theta, RPM_right, RPM_right),
-             action(x, y, theta, RPM_left, RPM_right),
-             action(x, y, theta, RPM_right, RPM_left)
-             ]
-
+    wheel_speed = [[0, RPM_left],
+                    [RPM_left, 0],
+                    [RPM_left, RPM_left],
+                    [0, RPM_right],
+                    [RPM_right, 0],
+                    [RPM_right, RPM_right],
+                    [RPM_left, RPM_right],
+                    [RPM_right, RPM_left]]
+    # # TODO: the curve plotting sequence will enter the obstacle area
+    model = []
+    for w in wheel_speed:
+        model.append(action(x, y, theta, w[0], w[1]))
     return model
 
 
@@ -215,10 +217,13 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
 
         # Generate children of current node based on the action set.
         for i in range(len(motion)):
-            next_x = round(cur.x + motion[i][0], 3)
-            next_y = round(cur.y + motion[i][1], 3)
+            next_x = round(motion[i][0], 3)
+            next_y = round(motion[i][1], 3)
             child_orientation = round(motion[i][4])
-
+            # next_x = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[0], 3)
+            # next_y = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[1], 3)
+            # next_cost = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[2], 3)
+            # child_orientation = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[3], 3)
             # Generate child node
             node = Node(next_x, next_y, cur.cost + motion[i][2], cur_index, child_orientation, prev_orientation)
             # Assign child node position
@@ -234,14 +239,14 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
 
             if node.prev_orientation > 360:
                 node.prev_orientation = node.prev_orientation - 360
-            c = node.prev_orientation // 30
+            c = int(node.prev_orientation // 30)
 
             # If the next node is already visited, skip it
             if V[a][b][c] == 1:
                 continue
 
             # Visualize motion
-            plt.quiver(cur.x, cur.y, motion[i][0], motion[i][1], units='xy', scale=1, color='r', width=.1)
+            # plt.quiver(cur.x, cur.y, motion[i][0], motion[i][1], units='xy', scale=1, color='r', width=.1)
             plt.pause(.0001)
 
             # If the child node is already in the queue, compare and update the node's cost and parent as needed.
