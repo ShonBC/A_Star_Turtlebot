@@ -2,14 +2,24 @@
 # Project 3 Phase 3 - RRT on Turtlebot3
 # Shon Cortes, Bo-Shiang Wang
 
+from logging import shutdown
 import numpy as np
 import matplotlib.pyplot as plt
+import rospy
+from geometry_msgs.msg import Twist, Point
 
 width = 1000
 height = 1000
 global robot_size
 # TODO: robot size ?
 robot_size = 15
+
+# Initialize your ROS node
+rospy.init_node("move_robot")
+# Set up a publisher to the /cmd_vel topic
+pub = rospy.Publisher("cmd_vel", Twist, queue_size=5)
+# Declare a message of type Twist
+velocity_msg = Twist() 
 
 
 # Class for storing node position, cost to come, parent index, and prev_orientation.
@@ -319,7 +329,26 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
     path_x.append(start_node.x)
     path_y.append(start_node.y)
 
+    x = reversed(path_x)
+    y = reversed(path_y)
+
+    # for i in range(len(path_x)): # Publish robot parameters to ROS
+
+    #     path_x[i] += 0.5 * r * (UL + UR) * np.cos(theta_n) * dt
+    #     Yn += 0.5 * r * (UL + UR) * np.sin(theta_n) * dt
+    #     theta_n += (r / L) * (UR - UL) * dt
+
+    #     pub_dx = rospy.Publisher(velocity_msg.linear.x) 
+    #     pub_dy = rospy.Publisher(velocity_msg.linear.y)
+    #     pub_dtheta = rospy.Publisher(velocity_msg.angular.z)
+
     return path_x, path_y
+
+
+def rrt():
+
+    x = random.randint(0, width)
+    y = random.randint(0, height)
 
 
 def main():
@@ -373,4 +402,15 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+
+    velocity_msg.linear.x = 0.1
+    velocity_msg.linear.y =0.1
+    velocity_msg.angular.z = 0.1
+
+    # pub_dx = rospy.Publisher(velocity_msg.linear.x) 
+    # pub_dy = rospy.Publisher(velocity_msg.linear.y)
+    # pub_dtheta = rospy.Publisher(velocity_msg.angular.z)
+
+    while rospy is not shutdown:
+        pub.publish(velocity_msg)
