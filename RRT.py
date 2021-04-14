@@ -14,12 +14,12 @@ global robot_size
 # TODO: robot size ?
 robot_size = 15
 
-# Initialize your ROS node
-rospy.init_node("move_robot")
-# Set up a publisher to the /cmd_vel topic
-pub = rospy.Publisher("cmd_vel", Twist, queue_size=5)
-# Declare a message of type Twist
-velocity_msg = Twist() 
+# # Initialize your ROS node
+# rospy.init_node("move_robot")
+# # Set up a publisher to the /cmd_vel topic
+# pub = rospy.Publisher("cmd_vel", Twist, queue_size=5)
+# # Declare a message of type Twist
+# velocity_msg = Twist() 
 
 
 # Class for storing node position, cost to come, parent index, and prev_orientation.
@@ -402,15 +402,21 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
 
-    velocity_msg.linear.x = 0.1
-    velocity_msg.linear.y =0.1
-    velocity_msg.angular.z = 0.1
+    # velocity_msg.linear.x = 0.1
+    # velocity_msg.linear.y =0.1
+    # velocity_msg.angular.z = 0.1
 
-    # pub_dx = rospy.Publisher(velocity_msg.linear.x) 
-    # pub_dy = rospy.Publisher(velocity_msg.linear.y)
-    # pub_dtheta = rospy.Publisher(velocity_msg.angular.z)
+    # while rospy is not shutdown:
+    #     pub.publish(velocity_msg)
 
-    while rospy is not shutdown:
-        pub.publish(velocity_msg)
+"""
+Calculate the velocities (dx. dy, d_theta) to be published.
+
+Publish them in order from start to goal:
+    publish each move for a set time (2 seconds?)
+    robot sleep for some time (.5 to 1 seconds?)
+
+No subscriber needed.
+"""
