@@ -18,8 +18,8 @@ height = 1000
 global robot_size
 # TODO: robot size ?
 robot_size = 15
-r = (66 / 2) / 1000 # Wheel radius
-L = 287 / 1000 # Wheel base
+r = 66/(float(2)) / float(100) # Wheel radius
+L = 287 / float(100) # Wheel base
 
 # Initialize your ROS node
 rospy.init_node("move_robot")
@@ -160,7 +160,7 @@ def action(Xi, Yi, theta_i, UL, UR):
     Yn = Yi
     theta_n = np.deg2rad(theta_i) # New orientation
     cost = 0 
-    scale = 100
+    scale = 10
     while t < 1:
         t = t + dt
         Xs = Xn
@@ -188,7 +188,7 @@ def visualize_action(Xi, Yi, theta_i, UL, UR, color="blue"):
     Yn = Yi
     theta_n = np.deg2rad(theta_i) # New orientation
     cost = 0 
-    scale = 100
+    scale = 10
     while t < 1:
         t = t + dt
         Xs = Xn
@@ -379,13 +379,13 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         RL = RL_list[i]
         theta = theta_list[i]
         move_turtlebot(UL, RL, theta)
-        # rospy.sleep(1.)
+        rospy.sleep(0.5)
         velocity_msg.linear.x = 0
         velocity_msg.linear.y = 0
         velocity_msg.angular.z = 0
         pub.publish(velocity_msg)
         # rate.sleep()
-        # rospy.sleep(1)
+        rospy.sleep(0.5)
 
     return path_x, path_y
 
@@ -394,8 +394,8 @@ def move_turtlebot(UL, RL, theta_n):
     global r, L
 
     dt = 0.1
-    velocity_msg.linear.x = 0.5 * r * (UL + RL) * np.cos(theta_n) * dt
-    velocity_msg.linear.y = 0.5 * r * (UL + RL) * np.sin(theta_n) * dt
+    velocity_msg.linear.x = abs(0.5 * r * (UL + RL) * np.cos(theta_n) * dt)
+    velocity_msg.linear.y = abs(0.5 * r * (UL + RL) * np.sin(theta_n) * dt)
     velocity_msg.angular.z =  (r / L) * (RL - UL) * dt
     pub.publish(velocity_msg)
 
