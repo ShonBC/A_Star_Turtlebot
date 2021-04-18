@@ -1,4 +1,6 @@
-# ENPM 661 - Planning for Autonomous Robots:
+#! /usr/bin/env python
+# 
+# # ENPM 661 - Planning for Autonomous Robots:
 # Project 3 Phase 3 - RRT on Turtlebot3
 # Shon Cortes, Bo-Shiang Wang
 
@@ -7,6 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import rospy
 from geometry_msgs.msg import Twist, Point
+import math
+import random
+
 
 width = 1000
 height = 1000
@@ -14,17 +19,25 @@ global robot_size
 # TODO: robot size ?
 robot_size = 15
 
-# # Initialize your ROS node
-# rospy.init_node("move_robot")
-# # Set up a publisher to the /cmd_vel topic
-# pub = rospy.Publisher("cmd_vel", Twist, queue_size=5)
-# # Declare a message of type Twist
-# velocity_msg = Twist() 
+# Initialize your ROS node
+rospy.init_node("move_robot")
+# Set up a publisher to the /cmd_vel topic
+pub = rospy.Publisher("cmd_vel", Twist, queue_size=5)
+# Declare a message of type Twist
+velocity_msg = Twist()
+rate = rospy.Rate(4)  # 4 Hz
+# parent frame for the listener
+parent_frame = 'odom'
+# child frame for the listener
+child_frame = 'base_footprint'
+# gains for the proportional controllers. These values can be tuned.
+k_h_gain = 1
+k_v_gain = 1
 
 
 # Class for storing node position, cost to come, parent index, and prev_orientation.
 class Node:
-    def __init__(self, x, y, cost, parent_index, prev_orientation, curr_orientation, UL, RL):
+    def __init__(self, x, y, cost, parent_index, prev_orientation, curr_orientation, UL, RL, UL_prev, RL_prev):
         self.x = x
         self.y = y
         self.cost = cost
@@ -33,6 +46,8 @@ class Node:
         self.curr_orientation = curr_orientation
         self.UL = UL
         self.RL = RL
+        self.UL_prev = UL_prev
+        self.RL_prev = RL_prev
 
 
 def move_check(child_node):  # Check if the move is allowed.
@@ -102,8 +117,8 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         RPM_right = 20  # For testing program
 
         # Initialize start and goal nodes from node class
-        start_node = Node(start_x, start_y, 0, -1, prev_orientation, prev_orientation, RPM_left, RPM_right)
-        goal_node = Node(goal_x, goal_y, 0, -1, 0, 0, RPM_left, RPM_right)
+        start_node = Node(start_x, start_y, 0, -1, prev_orientation, prev_orientation, RPM_left, RPM_right, 0, 0)
+        goal_node = Node(goal_x, goal_y, 0, -1, 0, 0, RPM_left, RPM_right, 0, 0)
 
         # Check if obstacle
         if obstacles_chk(start_node):
@@ -182,7 +197,7 @@ def visualize_action(Xi, Yi, theta_i, UL, UR, color="blue"):
         cost = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
                     + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
 
-        node = Node(Xn, Yn, cost, 0, theta_n, theta_i, UL, UR)
+        node = Node(Xn, Yn, cost, 0, theta_n, theta_i, UL, UR, 0, 0)
 
         if move_check(node):  # Check if child is within the map or in an obstacle.
             pass
@@ -251,7 +266,7 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         a = int(round(cur.x) / threshold)
         b = int(round(cur.y) / threshold)
         # c = orientation_dict[prev_orientation]
-        c = prev_orientation // 30
+        c = int(prev_orientation // 30)
         V[a][b][c] = 1
 
         # Initialize action set with prev_orientation, RPM_left, RPM_right, cur.x, cur.y
@@ -264,12 +279,14 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
             child_orientation = round(motion[i][3])
             UL = motion[i][5]
             RL = motion[i][6]
+            UL_prev = cur.UL
+            RL_prev = cur.RL
             # next_x = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[0], 3)
             # next_y = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[1], 3)
             # next_cost = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[2], 3)
             # child_orientation = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[3], 3)
             # Generate child node
-            node = Node(next_x, next_y, cur.cost + motion[i][2], cur_index, child_orientation, prev_orientation, UL, RL)
+            node = Node(next_x, next_y, cur.cost + motion[i][2], cur_index, child_orientation, prev_orientation, UL, RL, UL_prev, RL_prev)
             # Assign child node position
             node_index = (node.x, node.y)
 
@@ -313,42 +330,74 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
     ori = child.prev_orientation
     UL = child.UL
     RL = child.RL
+    UL_prev = child.UL_prev
+    RL_prev = child.RL_prev
+
+    UL_list = [goal_node.UL]
+    RL_list = [goal_node.RL]
+    theta_list = [goal_node.prev_orientation]
+
+    goal_node.UL_prev = child.UL
+    goal_node.RL_prev = child.RL
+
     # Follow the parents from the goal node to the start node and add them to the path list.
     while parent_index != (start_node.x, start_node.y):
         n = visited[(parent_index[0], parent_index[1], ori, UL, RL)]
         path_x.append(n.x)
         path_y.append(n.y)
+        UL_list.append(n.UL)
+        RL_list.append(n.RL)
+        theta_list.append(n.prev_orientation)
         parent_index = n.parent_index
         ori = n.curr_orientation
         
         visualize_action(parent_index[0], parent_index[1], ori, n.UL, n.RL, color="green")
 
-        UL = n.UL
-        RL = n.RL
+        UL = n.UL_prev
+        RL = n.RL_prev
 
     path_x.append(start_node.x)
     path_y.append(start_node.y)
 
-    x = reversed(path_x)
-    y = reversed(path_y)
+    path_x.reverse()
+    path_y.reverse()
 
-    # for i in range(len(path_x)): # Publish robot parameters to ROS
+    UL_list.append(start_node.UL)
+    RL_list.append(start_node.RL)
+    theta_list.append(start_node.prev_orientation)
+    UL_list.reverse()
+    RL_list.reverse()
+    theta_list.reverse()
 
-    #     path_x[i] += 0.5 * r * (UL + UR) * np.cos(theta_n) * dt
-    #     Yn += 0.5 * r * (UL + UR) * np.sin(theta_n) * dt
-    #     theta_n += (r / L) * (UR - UL) * dt
+    for i in range(len(UL_list)): # Publish robot parameters to ROS
+        UL = UL_list[i]
+        RL = RL_list[i]
+        theta = theta_list[i]
+        move_turtlebot(UL, RL, theta)
+        rate.sleep()
+        rospy.sleep(2)
+        velocity_msg.linear.x = 0
+        velocity_msg.linear.y = 0
+        velocity_msg.angular.z = 0
+        pub.publish(velocity_msg)
 
-    #     pub_dx = rospy.Publisher(velocity_msg.linear.x) 
-    #     pub_dy = rospy.Publisher(velocity_msg.linear.y)
-    #     pub_dtheta = rospy.Publisher(velocity_msg.angular.z)
+
+        # pub_dx = rospy.Publisher(velocity_msg.linear.x)
+        # pub_dy = rospy.Publisher(velocity_msg.linear.y)
+        # pub_dtheta = rospy.Publisher(velocity_msg.angular.z)
 
     return path_x, path_y
 
 
-def rrt():
-
-    x = random.randint(0, width)
-    y = random.randint(0, height)
+def move_turtlebot(UL, RL, theta_n):
+    r = 5
+    L = 50
+    dt = .1
+    velocity_msg.linear.x = 0.5 * r * (UL + RL) * np.cos(theta_n) * dt
+    velocity_msg.linear.y = 0.5 * r * (UL + RL) * np.sin(theta_n) * dt
+    velocity_msg.angular.z = (r / L) * (RL - UL) * dt
+    pub.publish(velocity_msg)
+    rate.sleep()
 
 
 def main():
