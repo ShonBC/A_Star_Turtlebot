@@ -119,7 +119,7 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         RPM_right = 20  # For testing program
 
         # Initialize start and goal nodes from node class
-        start_node = Node(start_x, start_y, 0, -1, prev_orientation, prev_orientation, RPM_left, RPM_right, 0, 0)
+        start_node = Node(start_x, start_y, 0, -1, prev_orientation, prev_orientation, 0, 0, 0, 0)
         goal_node = Node(goal_x, goal_y, 0, -1, 0, 0, RPM_left, RPM_right, 0, 0)
 
         # Check if obstacle
@@ -224,7 +224,7 @@ def motion_model(prev_orientation, RPM_left, RPM_right, x, y):
 
     model = []
     for w in wheel_speed:
-        model.append(action(x, y, theta, w[0], w[1]))
+        model.append(action(x, y, theta, w[1], w[0]))
     return model
 
 
@@ -250,6 +250,8 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         cur_index = min(queue, key=lambda o: queue[o].cost + euclidean_dist(goal_node, queue[o])) # Assign node in queue with minimum cost to be the current node to be tested.
         cur = queue[cur_index]
         prev_orientation = cur.prev_orientation
+        UL_prev = cur.UL
+        RL_prev = cur.RL
 
         # If goal node is reached, Break the while loop.
         # Add a threshold(circle) for the goal node
@@ -258,11 +260,13 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
             goal_node.parent_index = cur.parent_index
             goal_node.cost = cur.cost
             goal_node.curr_orientation = cur.curr_orientation
+            goal_node.UL = cur.UL_prev
+            goal_node.RL = cur.RL_prev
             print('Goal Found')
             break
 
         del queue[cur_index]  # Remove the current node from the queue.
-        visited[(cur.x, cur.y, cur.prev_orientation, cur.UL, cur.RL)] = cur  # Add current node to visited list.
+        visited[(cur.x, cur.y, cur.prev_orientation)] = cur  # Add current node to visited list.
 
         # Mark 1 for visited nodes in matrix V
         a = int(round(cur.x) / threshold)
@@ -279,14 +283,9 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
             next_x = round(motion[i][0], 3)
             next_y = round(motion[i][1], 3)
             child_orientation = round(motion[i][3])
-            UL = motion[i][5]
-            RL = motion[i][6]
-            UL_prev = cur.UL
-            RL_prev = cur.RL
-            # next_x = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[0], 3)
-            # next_y = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[1], 3)
-            # next_cost = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[2], 3)
-            # child_orientation = round(action(cur.x, cur.y, prev_orientation, motion[i][0], motion[i][1])[3], 3)
+            RL = motion[i][5]
+            UL = motion[i][6]
+
             # Generate child node
             node = Node(next_x, next_y, cur.cost + motion[i][2], cur_index, child_orientation, prev_orientation, UL, RL, UL_prev, RL_prev)
             # Assign child node position
@@ -319,21 +318,24 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
                 if queue[node_index].cost > node.cost:
                     queue[node_index].cost = node.cost
                     queue[node_index].parent_index = cur_index
+                    queue[node_index].UL = node.UL
+                    queue[node_index].RL = node.RL
             else:  # Else add child to the queue.
                 queue[node_index] = node
 
     # Backtrack the path from Goal to Start
     path_x, path_y = [goal_node.x], [goal_node.y]
     parent_index = goal_node.parent_index
-    child = visited[(parent_index[0], parent_index[1], goal_node.curr_orientation, goal_node.UL, goal_node.RL)]
-    plt.quiver(child.x, child.y, goal_node.x - child.x, goal_node.y - child.y,
-               units='xy', scale=1, color='r', width=.1)
+    child = visited[(parent_index[0], parent_index[1], goal_node.curr_orientation)]
+    # plt.quiver(child.x, child.y, goal_node.x - child.x, goal_node.y - child.y,
+    #            units='xy', scale=1, color='r', width=.1)
+    visualize_action(parent_index[0], parent_index[1], goal_node.prev_orientation, goal_node.UL, goal_node.RL, color="green")
 
     ori = child.prev_orientation
     UL = child.UL
     RL = child.RL
-    UL_prev = child.UL_prev
-    RL_prev = child.RL_prev
+    # UL_prev = child.UL_prev
+    # RL_prev = child.RL_prev
 
     UL_list = [goal_node.UL]
     RL_list = [goal_node.RL]
@@ -344,7 +346,7 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
 
     # Follow the parents from the goal node to the start node and add them to the path list.
     while parent_index != (start_node.x, start_node.y):
-        n = visited[(parent_index[0], parent_index[1], ori, UL, RL)]
+        n = visited[(parent_index[0], parent_index[1], ori)]
         path_x.append(n.x)
         path_y.append(n.y)
         UL_list.append(n.UL)
@@ -353,7 +355,7 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         parent_index = n.parent_index
         ori = n.curr_orientation
         
-        visualize_action(parent_index[0], parent_index[1], ori, n.UL, n.RL, color="green")
+        visualize_action(parent_index[0], parent_index[1], n.prev_orientation, UL, RL, color="green")
 
         UL = n.UL_prev
         RL = n.RL_prev
@@ -373,6 +375,8 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
 
     print(UL_list)
     print(RL_list)
+    print(path_x)
+    print(path_y)
 
     for i in range(len(UL_list)): # Publish robot parameters to ROS
         UL = UL_list[i]
@@ -442,7 +446,7 @@ def main():
     if a != b:
         path_x, path_y = a_star(start_node, goal_node, step_size, RPM_left, RPM_right)  # Call A star algorithm
 
-        plt.plot(path_x, path_y, "-g")
+        # plt.plot(path_x, path_y, "-g")
         plt.pause(0.0001)
         plt.show()
 
