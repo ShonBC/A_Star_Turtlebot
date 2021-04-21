@@ -72,22 +72,25 @@ def move_check(child_node):  # Check if the move is allowed.
 # Warning obstacles appear larger than they are.
 def obstacles_chk(NODE):
     node = [NODE.x, NODE.y]
+
+    clearance = L * 10
+
     # Square
-    if 50 <= node[0] <= 200 and 425 <= node[1] <= 575:
+    if 50 - clearance <= node[0] <= 200 + clearance and 425 - clearance <= node[1] <= 575 + clearance:
         return True
 
     # Rectangle
-    elif 375 <= node[0] <= 625 and 425 <= node[1] <= 575:
+    elif 375 - clearance <= node[0] <= 625 + clearance and 425 - clearance <= node[1] <= 575 + clearance:
         return True
 
-    elif 725 <= node[0] <= 875 and 200 <= node[1] <= 400:
+    elif 725 - clearance <= node[0] <= 875 + clearance and 200 - clearance <= node[1] <= 400 + clearance:
         return True
 
     # Circle
-    elif (node[0] - 200) ** 2 + (node[1] - 200) ** 2 <= 100 ** 2:
+    elif (node[0] - 200) ** 2 + (node[1] - 200) ** 2 <= (100 + clearance) ** 2:
         return True
 
-    elif (node[0] - 200) ** 2 + (node[1] - 800) ** 2 <= 100 ** 2:
+    elif (node[0] - 200) ** 2 + (node[1] - 800) ** 2 <= (100 + clearance) ** 2:
         return True
 
     else:
@@ -467,11 +470,9 @@ if __name__ == '__main__':
     #     pub.publish(velocity_msg)
 
 """
-Calculate the velocities (dx. dy, d_theta) to be published.
+Update the user inputs
 
-Publish them in order from start to goal:
-    publish each move for a set time (2 seconds?)
-    robot sleep for some time (.5 to 1 seconds?)
+Add clearance
 
 No subscriber needed.
 """
