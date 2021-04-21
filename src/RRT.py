@@ -262,8 +262,8 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
             goal_node.parent_index = cur.parent_index
             goal_node.cost = cur.cost
             goal_node.curr_orientation = cur.curr_orientation
-            goal_node.UL = cur.UL_prev
-            goal_node.RL = cur.RL_prev
+            goal_node.UL = cur.UL
+            goal_node.RL = cur.RL
             print('Goal Found')
             break
 
@@ -285,8 +285,8 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
             next_x = round(motion[i][0], 3)
             next_y = round(motion[i][1], 3)
             child_orientation = round(motion[i][3])
-            RL = motion[i][5]
-            UL = motion[i][6]
+            UL = motion[i][5]
+            RL = motion[i][6]
 
             # Generate child node
             node = Node(next_x, next_y, cur.cost + motion[i][2], cur_index, child_orientation, prev_orientation, UL, RL, UL_prev, RL_prev)
@@ -331,7 +331,7 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
     child = visited[(parent_index[0], parent_index[1], goal_node.curr_orientation)]
     # plt.quiver(child.x, child.y, goal_node.x - child.x, goal_node.y - child.y,
     #            units='xy', scale=1, color='r', width=.1)
-    visualize_action(parent_index[0], parent_index[1], goal_node.prev_orientation, goal_node.UL, goal_node.RL, color="green")
+    visualize_action(parent_index[0], parent_index[1], goal_node.curr_orientation, goal_node.UL, goal_node.RL, color="green")
 
     ori = child.prev_orientation
     UL = child.UL
@@ -357,7 +357,7 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         parent_index = n.parent_index
         ori = n.curr_orientation
         
-        visualize_action(parent_index[0], parent_index[1], n.prev_orientation, UL, RL, color="green")
+        visualize_action(parent_index[0], parent_index[1], n.curr_orientation, n.UL, n.RL, color="green")
 
         UL = n.UL_prev
         RL = n.RL_prev
