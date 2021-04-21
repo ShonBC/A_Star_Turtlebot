@@ -100,17 +100,30 @@ def obstacles_chk(NODE):
 def begin():  # Ask for user input of start and goal pos. Start and goal much be positive integers
     while True:
 
-        start_x = 100
-        start_y = 100
+        # Close to obstacle
+        # start_x = 100
+        # start_y = 100
+        
+        # Straight
+        start_x = 40
+        start_y = 40
+
         # try:
         #     start_theta = int(input("Enter starting theta: "))
         # except ValueError:
         #     start_theta = 0
 
+        # # Between obstacles
         # goal_x = 600
         # goal_y = 330
-        goal_x = 720
-        goal_y = 100
+
+        goal_x = 800
+        goal_y = 800
+
+
+        # Straight
+        # goal_x = 720
+        # goal_y = 100
         # step_size = int(input("Enter the step size for the motion: "))
 
         # TODO: Remember to make start_theta and step_size to user input after testing
@@ -175,6 +188,13 @@ def action(Xi, Yi, theta_i, UL, UR):
         theta_n += ((r / L) * (UR - UL) * dt) 
         cost = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
                     + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
+
+        node = Node(Xn, Yn, cost, 0, theta_n, theta_i, UL, UR, 0, 0)
+
+        if move_check(node):  # Check if child is within the map or in an obstacle.
+            pass
+        else:  # If out of bounds or an obstacle, restart loop and choose new node.
+            break
 
     theta_n = np.rad2deg(theta_n)
 
@@ -472,7 +492,8 @@ if __name__ == '__main__':
 """
 Update the user inputs
 
-Add clearance
+Fix Gazebo movement
+
 
 No subscriber needed.
 """
