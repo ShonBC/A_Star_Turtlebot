@@ -104,8 +104,10 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         # except ValueError:
         #     start_theta = 0
 
-        goal_x = 600
-        goal_y = 330
+        # goal_x = 600
+        # goal_y = 330
+        goal_x = 720
+        goal_y = 100
         # step_size = int(input("Enter the step size for the motion: "))
 
         # TODO: Remember to make start_theta and step_size to user input after testing
@@ -400,7 +402,7 @@ def move_turtlebot(UL, RL, theta_n):
     dt = 0.1
     velocity_msg.linear.x = abs(0.5 * r * (UL + RL) * np.cos(theta_n) * dt)
     velocity_msg.linear.y = abs(0.5 * r * (UL + RL) * np.sin(theta_n) * dt)
-    velocity_msg.angular.z =  (r / L) * (RL - UL) * dt
+    velocity_msg.angular.z =  (r / L) * (UL - RL) * dt
     pub.publish(velocity_msg)
 
 
