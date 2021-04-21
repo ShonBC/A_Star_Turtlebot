@@ -104,10 +104,10 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         # except ValueError:
         #     start_theta = 0
 
-        # goal_x = 600
-        # goal_y = 330
-        goal_x = 720
-        goal_y = 100
+        goal_x = 600
+        goal_y = 330
+        # goal_x = 720
+        # goal_y = 100
         # step_size = int(input("Enter the step size for the motion: "))
 
         # TODO: Remember to make start_theta and step_size to user input after testing
@@ -160,7 +160,7 @@ def action(Xi, Yi, theta_i, UL, UR):
     dt = 0.1
     Xn = Xi
     Yn = Yi
-    theta_n = np.deg2rad(theta_i) # New orientation
+    theta_n = theta_i # New orientation
     cost = 0 
     scale = 10
     while t < 1:
@@ -169,7 +169,7 @@ def action(Xi, Yi, theta_i, UL, UR):
         Ys = Yn
         Xn += (0.5 * r * (UL + UR) * np.cos(theta_n) * dt) * scale
         Yn += (0.5 * r * (UL + UR) * np.sin(theta_n) * dt) * scale
-        theta_n += ((r / L) * (UL - UR) * dt) 
+        theta_n += ((r / L) * (UR - UL) * dt) 
         cost = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
                     + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
 
@@ -197,7 +197,7 @@ def visualize_action(Xi, Yi, theta_i, UL, UR, color="blue"):
         Ys = Yn
         Xn += (0.5 * r * (UL + UR) * np.cos(theta_n) * dt) * scale
         Yn += (0.5 * r * (UL + UR) * np.sin(theta_n) * dt) * scale
-        theta_n += ((r / L) * (UL - UR) * dt)
+        theta_n += ((r / L) * (UR - UL) * dt)
         cost = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
                     + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
 
@@ -402,7 +402,7 @@ def move_turtlebot(UL, RL, theta_n):
     dt = 0.1
     velocity_msg.linear.x = abs(0.5 * r * (UL + RL) * np.cos(theta_n) * dt)
     velocity_msg.linear.y = abs(0.5 * r * (UL + RL) * np.sin(theta_n) * dt)
-    velocity_msg.angular.z =  (r / L) * (UL - RL) * dt
+    velocity_msg.angular.z =  (r / L) * (RL - UL) * dt
     pub.publish(velocity_msg)
 
 
