@@ -224,7 +224,7 @@ def motion_model(prev_orientation, RPM_left, RPM_right, x, y):
 
     model = []
     for w in wheel_speed:
-        model.append(action(x, y, theta, w[1], w[0]))
+        model.append(action(x, y, theta, w[0], w[1]))
     return model
 
 
@@ -383,7 +383,7 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         RL = RL_list[i]
         theta = theta_list[i]
         move_turtlebot(UL, RL, theta)
-        rospy.sleep(0.5)
+        rospy.sleep(1.5)
         velocity_msg.linear.x = 0
         velocity_msg.linear.y = 0
         velocity_msg.angular.z = 0
