@@ -104,10 +104,10 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         # except ValueError:
         #     start_theta = 0
 
-        goal_x = 600
-        goal_y = 330
-        # goal_x = 720
-        # goal_y = 100
+        # goal_x = 600
+        # goal_y = 330
+        goal_x = 720
+        goal_y = 100
         # step_size = int(input("Enter the step size for the motion: "))
 
         # TODO: Remember to make start_theta and step_size to user input after testing
@@ -385,7 +385,7 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         RL = RL_list[i]
         theta = theta_list[i]
         move_turtlebot(UL, RL, theta)
-        rospy.sleep(1.5)
+        rospy.sleep(1)
         velocity_msg.linear.x = 0
         velocity_msg.linear.y = 0
         velocity_msg.angular.z = 0
