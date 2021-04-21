@@ -14,7 +14,7 @@ from geometry_msgs.msg import Twist, Point
 width = 1000
 height = 1000
 r = 66/(float(2)) / float(100) # Wheel radius
-L = 287 / float(100) # Wheel base
+L = 160 / float(100) # Wheel base
 
 # Initialize your ROS node
 rospy.init_node("move_robot")
@@ -105,13 +105,13 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         # goal_x = 600
         # goal_y = 330
 
-        goal_x = 800
-        goal_y = 800
+        # goal_x = 800
+        # goal_y = 800
 
 
         # Straight
-        # goal_x = 720
-        # goal_y = 100
+        goal_x = 720
+        goal_y = 100
         # step_size = int(input("Enter the step size for the motion: "))
 
         # TODO: Remember to make start_theta and step_size to user input after testing
