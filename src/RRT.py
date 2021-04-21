@@ -121,8 +121,8 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         prev_orientation = start_theta
 
         # TODO: Remember to make RPM_left and RPM_right to user input after testing
-        RPM_left = 10  # For testing program
-        RPM_right = 20  # For testing program
+        RPM_left = 1  # For testing program
+        RPM_right = 2  # For testing program
 
         # Initialize start and goal nodes from node class
         start_node = Node(start_x, start_y, 0, -1, prev_orientation, prev_orientation, 0, 0, 0, 0)
@@ -471,6 +471,7 @@ if __name__ == '__main__':
     main()
 
     # velocity_msg.linear.x = 0.1
+    # pub.publish(velocity_msg)
     # velocity_msg.linear.y =0.1
     # velocity_msg.angular.z = 0.1
 
@@ -478,10 +479,9 @@ if __name__ == '__main__':
     #     pub.publish(velocity_msg)
 
 """
-Update the user inputs
+Update the user inputs Fixed start or RPM
 
-Fix Gazebo movement
-
+Fix Map and obstacle scale
 
 No subscriber needed.
 """
