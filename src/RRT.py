@@ -167,7 +167,7 @@ def action(Xi, Yi, theta_i, UL, UR):
         Ys = Yn
         Xn += (0.5 * r * (UL + UR) * np.cos(theta_n) * dt) * scale
         Yn += (0.5 * r * (UL + UR) * np.sin(theta_n) * dt) * scale
-        theta_n += ((r / L) * (UR - UL) * dt) 
+        theta_n += ((r / L) * (UL - UR) * dt) 
         cost = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
                     + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
 
