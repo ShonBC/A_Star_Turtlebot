@@ -9,15 +9,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import rospy
 from geometry_msgs.msg import Twist, Point
-import math
-import random
 
 
 width = 1000
 height = 1000
-global robot_size
-# TODO: robot size ?
-robot_size = 15
 r = 66/(float(2)) / float(100) # Wheel radius
 L = 287 / float(100) # Wheel base
 
@@ -28,13 +23,6 @@ pub = rospy.Publisher("cmd_vel", Twist, queue_size=5)
 # Declare a message of type Twist
 velocity_msg = Twist()
 rate = rospy.Rate(4)  # 4 Hz
-# parent frame for the listener
-parent_frame = 'odom'
-# child frame for the listener
-child_frame = 'base_footprint'
-# gains for the proportional controllers. These values can be tuned.
-k_h_gain = 1
-k_v_gain = 1
 
 
 # Class for storing node position, cost to come, parent index, and prev_orientation.
