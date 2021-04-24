@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # 
 # # ENPM 661 - Planning for Autonomous Robots:
-# Project 3 Phase 3 - RRT on Turtlebot3
+# Project 3 Phase 3 - A_star on Turtlebot3
 # Shon Cortes, Bo-Shiang Wang
 
 from logging import shutdown
@@ -88,44 +88,25 @@ def obstacles_chk(NODE):
 def begin():  # Ask for user input of start and goal pos. Start and goal much be positive integers
     while True:
 
-        # Close to obstacle
-        # start_x = 100
-        # start_y = 100
-        
-        # # Straight
-        # start_x = 4
-        # start_y = 4
-
+        # Start position
         start_x = .5
         start_y = .5
 
-        # try:
-        #     start_theta = int(input("Enter starting theta: "))
-        # except ValueError:
-        #     start_theta = 0
-
-        # # Between obstacles
-        # goal_x = 6
-        # goal_y = 3
-
+        # Goal position
         goal_x = 9
         goal_y = 9
 
-
-        # # Straight
-        # goal_x = 720
-        # goal_y = 100
-        # step_size = int(input("Enter the step size for the motion: "))
-
-        # TODO: Remember to make start_theta and step_size to user input after testing
+        # Start orientation
         start_theta = 0
+
+        # Goal threshold
         step_size = .5
 
         prev_orientation = start_theta
 
-        # TODO: Remember to make RPM_left and RPM_right to user input after testing
-        RPM_left = 7  # For testing program
-        RPM_right = 10  # For testing program
+        # Wheel RPM values
+        RPM_left = 7  
+        RPM_right = 10  
 
         # Initialize start and goal nodes from node class
         start_node = Node(start_x, start_y, 0, -1, prev_orientation, prev_orientation, 0, 0, 0, 0)
@@ -178,8 +159,8 @@ def action(Xi, Yi, theta_i, UL, UR):
         Yn += (0.5 * r * (UL + UR) * np.sin(theta_n) * dt) * scale
         theta_n += ((r / L) * (UR - UL) * dt) 
         cost += np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
-                    + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
-        # cost = np.sqrt((Xn)**2 + (Yn)**2) # Cost to come
+                    + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2) # Cost to come
+
 
         node = Node(Xn, Yn, cost, 0, theta_n, theta_i, UL, UR, 0, 0)
 
@@ -213,8 +194,6 @@ def visualize_action(Xi, Yi, theta_i, UL, UR, color="blue"):
         Xn += (0.5 * r * (UL + UR) * np.cos(theta_n) * dt) * scale
         Yn += (0.5 * r * (UL + UR) * np.sin(theta_n) * dt) * scale
         theta_n += ((r / L) * (UR - UL) * dt)
-        # cost = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
-        #             + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
 
         node = Node(Xn, Yn, cost, 0, theta_n, theta_i, UL, UR, 0, 0)
 
@@ -226,12 +205,9 @@ def visualize_action(Xi, Yi, theta_i, UL, UR, color="blue"):
         plt.plot([Xs, Xn], [Ys, Yn], color)
 
 def motion_model(prev_orientation, RPM_left, RPM_right, x, y):
-    # TODO: determine theta angle 30? 45?
-    # theta = theta + Previous orientation
+
     theta = np.deg2rad(prev_orientation)
     # Get the new x and y coordinates, new theta, and cost through action()
-    # rpm = [RPM_left, RPM_right]
-    # zero = min(rpm) / 1.5
     scale = 1.1
     wheel_speed = [[RPM_left / scale, RPM_left],
                     [RPM_left, RPM_left / scale],
@@ -291,7 +267,6 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         # Mark 1 for visited nodes in matrix V
         a = int(round(cur.x) / threshold)
         b = int(round(cur.y) / threshold)
-        # c = orientation_dict[prev_orientation]
         c = int(prev_orientation // 30)
         V[a][b][c] = 1
 
@@ -327,10 +302,9 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
             if V[a][b][c] == 1:
                 continue
 
-            visualize_action(cur.x, cur.y, prev_orientation, UL, RL)
-
             # Visualize motion
-            # plt.quiver(cur.x, cur.y, motion[i][0], motion[i][1], units='xy', scale=1, color='r', width=.1)
+            visualize_action(cur.x, cur.y, prev_orientation, UL, RL)
+                      
             plt.pause(.0001)
 
             # If the child node is already in the queue, compare and update the node's cost and parent as needed.
@@ -347,15 +321,12 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
     path_x, path_y = [goal_node.x], [goal_node.y]
     parent_index = goal_node.parent_index
     child = visited[(parent_index[0], parent_index[1], goal_node.curr_orientation)]
-    # plt.quiver(child.x, child.y, goal_node.x - child.x, goal_node.y - child.y,
-    #            units='xy', scale=1, color='r', width=.1)
+
     visualize_action(parent_index[0], parent_index[1], goal_node.curr_orientation, goal_node.UL, goal_node.RL, color="green")
 
     ori = child.prev_orientation
     UL = child.UL
     RL = child.RL
-    # UL_prev = child.UL_prev
-    # RL_prev = child.RL_prev
 
     UL_list = [goal_node.UL]
     RL_list = [goal_node.RL]
@@ -403,16 +374,6 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         RL = RL_list[i]
         theta = theta_list[i]
         move_turtlebot(UL, RL, theta)
-        # if velocity_msg.angular is not 0:
-        #     rospy.sleep(10)
-        # else: 
-        # rospy.sleep(3)
-        # velocity_msg.linear.x = 0
-        # velocity_msg.linear.y = 0
-        # velocity_msg.angular.z = 0
-        # pub.publish(velocity_msg)
-        # # rate.sleep()
-        # rospy.sleep(0.5)
 
     return path_x, path_y
 
@@ -440,7 +401,6 @@ def move_turtlebot(UL, RL, theta_n):
     velocity_msg.linear.y = 0
     velocity_msg.angular.z = 0
     pub.publish(velocity_msg)
-    # rate.sleep()
     rospy.sleep(0.5)
 
 
@@ -510,7 +470,4 @@ if __name__ == '__main__':
 """
 Update the user inputs Fixed start or RPM
 
-Fix Map and obstacle scale
-
-No subscriber needed.
 """
