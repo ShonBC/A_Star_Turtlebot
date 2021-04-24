@@ -61,7 +61,7 @@ def move_check(child_node):  # Check if the move is allowed.
 def obstacles_chk(NODE):
     node = [NODE.x, NODE.y]
 
-    clearance = L
+    clearance = L * 2
 
     # Square
     if .50 - clearance <= node[0] <= 2.00 + clearance and 4.25 - clearance <= node[1] <= 5.75 + clearance:
@@ -105,11 +105,11 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         #     start_theta = 0
 
         # # Between obstacles
-        goal_x = 6
-        goal_y = 3
+        # goal_x = 6
+        # goal_y = 3
 
-        # goal_x = 800
-        # goal_y = 800
+        goal_x = 9
+        goal_y = 9
 
 
         # # Straight
@@ -119,13 +119,13 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
 
         # TODO: Remember to make start_theta and step_size to user input after testing
         start_theta = 0
-        step_size = .1
+        step_size = .5
 
         prev_orientation = start_theta
 
         # TODO: Remember to make RPM_left and RPM_right to user input after testing
-        RPM_left = 2.5  # For testing program
-        RPM_right = 5  # For testing program
+        RPM_left = 7  # For testing program
+        RPM_right = 10  # For testing program
 
         # Initialize start and goal nodes from node class
         start_node = Node(start_x, start_y, 0, -1, prev_orientation, prev_orientation, 0, 0, 0, 0)
@@ -230,11 +230,14 @@ def motion_model(prev_orientation, RPM_left, RPM_right, x, y):
     # theta = theta + Previous orientation
     theta = np.deg2rad(prev_orientation)
     # Get the new x and y coordinates, new theta, and cost through action()
-    wheel_speed = [[0, RPM_left],
-                    [RPM_left, 0],
+    # rpm = [RPM_left, RPM_right]
+    # zero = min(rpm) / 1.5
+    scale = 1.1
+    wheel_speed = [[RPM_left / scale, RPM_left],
+                    [RPM_left, RPM_left / scale],
                     [RPM_left, RPM_left],
-                    [0, RPM_right],
-                    [RPM_right, 0],
+                    [RPM_right / scale, RPM_right],
+                    [RPM_right, RPM_right / scale],
                     [RPM_right, RPM_right],
                     [RPM_left, RPM_right],
                     [RPM_right, RPM_left]]
@@ -400,13 +403,16 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
         RL = RL_list[i]
         theta = theta_list[i]
         move_turtlebot(UL, RL, theta)
-        rospy.sleep(1)
-        velocity_msg.linear.x = 0
-        velocity_msg.linear.y = 0
-        velocity_msg.angular.z = 0
-        pub.publish(velocity_msg)
-        # rate.sleep()
-        rospy.sleep(0.5)
+        # if velocity_msg.angular is not 0:
+        #     rospy.sleep(10)
+        # else: 
+        # rospy.sleep(3)
+        # velocity_msg.linear.x = 0
+        # velocity_msg.linear.y = 0
+        # velocity_msg.angular.z = 0
+        # pub.publish(velocity_msg)
+        # # rate.sleep()
+        # rospy.sleep(0.5)
 
     return path_x, path_y
 
@@ -414,7 +420,8 @@ def a_star(start_node, goal_node, step_size, RPM_left, RPM_right):
 def move_turtlebot(UL, RL, theta_n):
     global r, L
 
-    dt = 0.1
+    # dt = 0.1
+    dt = .5
     x_dot = (0.5 * r * (UL + RL) * np.cos(theta_n) * dt)
     y_dot = (0.5 * r * (UL + RL) * np.sin(theta_n) * dt)
 
@@ -423,6 +430,18 @@ def move_turtlebot(UL, RL, theta_n):
     velocity_msg.angular.z =  (r / L) * (RL - UL) * dt
 
     pub.publish(velocity_msg)
+
+    if velocity_msg.angular is 0:
+        rospy.sleep(20)
+    else: 
+        rospy.sleep(2)
+
+    velocity_msg.linear.x = 0
+    velocity_msg.linear.y = 0
+    velocity_msg.angular.z = 0
+    pub.publish(velocity_msg)
+    # rate.sleep()
+    rospy.sleep(0.5)
 
 
 def main():
