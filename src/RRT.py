@@ -11,10 +11,10 @@ import rospy
 from geometry_msgs.msg import Twist, Point
 
 
-width = 1000
-height = 1000
-r = 66/(float(2)) / float(100) # Wheel radius
-L = 160 / float(100) # Wheel base
+width = 10
+height = 10
+r = .066 / (float(2)) # Wheel radius in meters
+L = .160  # Wheel base in meters
 
 # Initialize your ROS node
 rospy.init_node("move_robot")
@@ -61,24 +61,24 @@ def move_check(child_node):  # Check if the move is allowed.
 def obstacles_chk(NODE):
     node = [NODE.x, NODE.y]
 
-    clearance = L * 10
+    clearance = L
 
     # Square
-    if 50 - clearance <= node[0] <= 200 + clearance and 425 - clearance <= node[1] <= 575 + clearance:
+    if .50 - clearance <= node[0] <= 2.00 + clearance and 4.25 - clearance <= node[1] <= 5.75 + clearance:
         return True
 
     # Rectangle
-    elif 375 - clearance <= node[0] <= 625 + clearance and 425 - clearance <= node[1] <= 575 + clearance:
+    elif 3.75 - clearance <= node[0] <= 6.25 + clearance and 4.25 - clearance <= node[1] <= 5.75 + clearance:
         return True
 
-    elif 725 - clearance <= node[0] <= 875 + clearance and 200 - clearance <= node[1] <= 400 + clearance:
+    elif 7.25 - clearance <= node[0] <= 8.75 + clearance and 2.00 - clearance <= node[1] <= 4.00 + clearance:
         return True
 
     # Circle
-    elif (node[0] - 200) ** 2 + (node[1] - 200) ** 2 <= (100 + clearance) ** 2:
+    elif (node[0] - 2.00) ** 2 + (node[1] - 2.00) ** 2 <= (1.00 + clearance) ** 2:
         return True
 
-    elif (node[0] - 200) ** 2 + (node[1] - 800) ** 2 <= (100 + clearance) ** 2:
+    elif (node[0] - 2.00) ** 2 + (node[1] - 8.00) ** 2 <= (1.00 + clearance) ** 2:
         return True
 
     else:
@@ -92,9 +92,12 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         # start_x = 100
         # start_y = 100
         
-        # Straight
-        start_x = 40
-        start_y = 40
+        # # Straight
+        # start_x = 4
+        # start_y = 4
+
+        start_x = .5
+        start_y = .5
 
         # try:
         #     start_theta = int(input("Enter starting theta: "))
@@ -102,27 +105,27 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         #     start_theta = 0
 
         # # Between obstacles
-        # goal_x = 600
-        # goal_y = 330
+        goal_x = 6
+        goal_y = 3
 
         # goal_x = 800
         # goal_y = 800
 
 
-        # Straight
-        goal_x = 720
-        goal_y = 100
+        # # Straight
+        # goal_x = 720
+        # goal_y = 100
         # step_size = int(input("Enter the step size for the motion: "))
 
         # TODO: Remember to make start_theta and step_size to user input after testing
         start_theta = 0
-        step_size = 50
+        step_size = .1
 
         prev_orientation = start_theta
 
         # TODO: Remember to make RPM_left and RPM_right to user input after testing
-        RPM_left = 1  # For testing program
-        RPM_right = 2  # For testing program
+        RPM_left = 2.5  # For testing program
+        RPM_right = 5  # For testing program
 
         # Initialize start and goal nodes from node class
         start_node = Node(start_x, start_y, 0, -1, prev_orientation, prev_orientation, 0, 0, 0, 0)
@@ -166,7 +169,7 @@ def action(Xi, Yi, theta_i, UL, UR):
     Yn = Yi
     theta_n = theta_i # New orientation
     cost = 0 
-    scale = 10
+    scale = 2.5
     while t < 1:
         t = t + dt
         Xs = Xn
@@ -174,8 +177,9 @@ def action(Xi, Yi, theta_i, UL, UR):
         Xn += (0.5 * r * (UL + UR) * np.cos(theta_n) * dt) * scale
         Yn += (0.5 * r * (UL + UR) * np.sin(theta_n) * dt) * scale
         theta_n += ((r / L) * (UR - UL) * dt) 
-        cost = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
+        cost += np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
                     + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
+        # cost = np.sqrt((Xn)**2 + (Yn)**2) # Cost to come
 
         node = Node(Xn, Yn, cost, 0, theta_n, theta_i, UL, UR, 0, 0)
 
@@ -201,7 +205,7 @@ def visualize_action(Xi, Yi, theta_i, UL, UR, color="blue"):
     Yn = Yi
     theta_n = np.deg2rad(theta_i) # New orientation
     cost = 0 
-    scale = 10
+    scale = 2.5
     while t < 1:
         t = t + dt
         Xs = Xn
@@ -209,8 +213,8 @@ def visualize_action(Xi, Yi, theta_i, UL, UR, color="blue"):
         Xn += (0.5 * r * (UL + UR) * np.cos(theta_n) * dt) * scale
         Yn += (0.5 * r * (UL + UR) * np.sin(theta_n) * dt) * scale
         theta_n += ((r / L) * (UR - UL) * dt)
-        cost = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
-                    + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
+        # cost = np.sqrt((0.5 * r * (UL + UR) * np.cos(theta_n) * dt)**2
+        #             + (0.5 * r * (UL + UR) * np.sin(theta_n) * dt)**2)
 
         node = Node(Xn, Yn, cost, 0, theta_n, theta_i, UL, UR, 0, 0)
 
@@ -411,44 +415,50 @@ def move_turtlebot(UL, RL, theta_n):
     global r, L
 
     dt = 0.1
-    velocity_msg.linear.x = abs(0.5 * r * (UL + RL) * np.cos(theta_n) * dt)
-    velocity_msg.linear.y = abs(0.5 * r * (UL + RL) * np.sin(theta_n) * dt)
+    x_dot = (0.5 * r * (UL + RL) * np.cos(theta_n) * dt)
+    y_dot = (0.5 * r * (UL + RL) * np.sin(theta_n) * dt)
+
+    velocity_msg.linear.x = np.sqrt(x_dot**2 + y_dot**2)
+    velocity_msg.linear.y = 0
     velocity_msg.angular.z =  (r / L) * (RL - UL) * dt
+
     pub.publish(velocity_msg)
 
 
 def main():
     # set obstacle positions
     ox, oy = [], []
-    for i in range(0, 1000):
-        for j in range(0, 1000):
+    scale = 0.01
 
-            if 50 <= i <= 200 and 425 <= j <= 575:
+    for i in np.arange(0, width, scale):
+        for j in np.arange(0, height, scale):
+
+            if .50 <= i <= 2.00 and 4.25 <= j <= 5.75:
                 ox.append(i)
                 oy.append(j)
 
             # Rectangle
-            if 375 <= i <= 625 and 425 <= j <= 575:
+            if 3.75 <= i <= 6.25 and 4.25 <= j <= 5.75:
                 ox.append(i)
                 oy.append(j)
 
-            if 725 <= i <= 875 and 200 <= j <= 400:
+            if 7.25 <= i <= 8.75 and 2.00 <= j <= 4.00:
                 ox.append(i)
                 oy.append(j)
 
             # Circle
-            if (i - 200) ** 2 + (j - 200) ** 2 <= 100 ** 2:
+            if (i - 2.00) ** 2 + (j - 2.00) ** 2 <= 1.00 ** 2:
                 ox.append(i)
                 oy.append(j)
 
-            if (i - 200) ** 2 + (j - 800) ** 2 <= 100 ** 2:
+            if (i - 2.00) ** 2 + (j - 8.00) ** 2 <= 1.00 ** 2:
                 ox.append(i)
                 oy.append(j)
 
     start_node, goal_node, step_size, RPM_left, RPM_right = begin()
 
-    plt.xlim([0, 1000])
-    plt.ylim([0, 1000])
+    plt.xlim([0, width])
+    plt.ylim([0, height])
     plt.plot(ox, oy, ".k")
     plt.grid(True)
     plt.axis("equal")
